@@ -13,10 +13,13 @@ public class Layer {
 
     private List<Neuron> neurons;
     private Layer previousLayer;
+    private Layer nextLayer;
+    private boolean outputLayer;
 
     public Layer() {
         neurons = new ArrayList<Neuron>();
         previousLayer = null;
+        outputLayer = false;
     }
 
     public Layer(Layer previousLayer) {
@@ -34,7 +37,7 @@ public class Layer {
 
         if(previousLayer != null) {
             for(Neuron previousLayerNeuron : previousLayer.getNeurons()) {
-                neuron.addInput(new Synapse(previousLayerNeuron, 0.0));
+                neuron.addInput(new Synapse(previousLayerNeuron, (Math.random() * 2) - 1)); //initialize with a random weight between -1 and 1
             }
         }
     }
@@ -71,5 +74,29 @@ public class Layer {
 
             neuron.setOutput(neuron.getActivationStrategy().activate(weightedSum));
         }
+    }
+
+    public Layer getPreviousLayer() {
+        return previousLayer;
+    }
+
+    void setPreviousLayer(Layer previousLayer) {
+        this.previousLayer = previousLayer;
+    }
+
+    public Layer getNextLayer() {
+        return nextLayer;
+    }
+
+    void setNextLayer(Layer nextLayer) {
+        this.nextLayer = nextLayer;
+    }
+
+    public void setOutputLayer(boolean outputLayer) {
+        this.outputLayer = outputLayer;
+    }
+
+    public boolean isOutputLayer() {
+        return this.outputLayer;
     }
 }

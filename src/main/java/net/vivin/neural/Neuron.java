@@ -16,10 +16,12 @@ public class Neuron {
     private List<Synapse> inputs;
     private ActivationStrategy activationStrategy;
     private double output;
+    private double error;
 
     public Neuron(ActivationStrategy activationStrategy) {
         inputs = new ArrayList<Synapse>();
         this.activationStrategy = activationStrategy;
+        error = 0;
     }
 
     public void addInput(Synapse input) {
@@ -40,5 +42,13 @@ public class Neuron {
 
     public ActivationStrategy getActivationStrategy() {
         return activationStrategy;
+    }
+
+    public double getError() {
+        return error;
+    }
+
+    public void setError(double error) {
+        this.error = error;
     }
 }

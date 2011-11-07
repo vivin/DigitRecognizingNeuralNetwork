@@ -26,7 +26,15 @@ public class NeuralNetwork {
             input = layer;
         }
 
+        if(layers.size() > 1) {
+            //clear the output flag on the previous output layer, but only if we have more than 1 layer
+            Layer previousLayer = layers.get(layers.size() - 2);
+            previousLayer.setOutputLayer(false);
+            previousLayer.setNextLayer(layer);
+        }
+
         output = layers.get(layers.size() - 1);
+        output.setOutputLayer(true);
     }
 
     public void setInputs(double[] inputs) {
@@ -61,5 +69,9 @@ public class NeuralNetwork {
         }
 
         return outputs;
+    }
+
+    public List<Layer> getLayers() {
+        return layers;
     }
 }
