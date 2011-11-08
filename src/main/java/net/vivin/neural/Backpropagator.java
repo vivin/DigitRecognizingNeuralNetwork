@@ -1,6 +1,8 @@
 package net.vivin.neural;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,8 @@ public class Backpropagator {
         }
 
         List<Layer> layers = neuralNetwork.getLayers();
+
+        Map<Neuron, Double> neuronDeltaMap = new HashMap<Neuron, Double>();
 
         double totalError;
 
@@ -81,6 +85,14 @@ public class Backpropagator {
                         for (Synapse synapse : neuron.getInputs()) {
                             //System.out.println("delta = " + learningRate + " * " + neuronError + " * " + synapse.getSourceNeuron().getOutput());
                             double delta = learningRate * neuronError * synapse.getSourceNeuron().getOutput();
+
+                            if(neuronDeltaMap.get(neuron) != null) {
+                                double previous_delta = neuronDeltaMap.get(neuron);
+                                delta += 0.75 * previous_delta;
+                            }
+
+                            neuronDeltaMap.put(neuron, delta); //read up more on this... figure out how to fix the algorithm to account for momentum
+
                             //System.out.println("Adjusting weight " + synapse.getWeight() + " by " + delta);
                             synapse.setWeight(synapse.getWeight() + delta);
                         }
