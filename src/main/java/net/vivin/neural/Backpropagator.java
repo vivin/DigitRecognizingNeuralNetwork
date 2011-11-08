@@ -33,6 +33,8 @@ public class Backpropagator {
         do {
 
             totalError = 0;
+            double[] errors = new double[inputs.length];
+
             for (int i = 0; i < inputs.length; i++) {
 
                 double[] input = inputs[i];
@@ -50,10 +52,8 @@ public class Backpropagator {
 
                         if (layer.isOutputLayer()) {
                             neuronError = neuron.getActivationStrategy().derivative(output[k]) * (expectedOutput[k] - output[k]);
-                            //neuronError = output[k] * (1 - output[k]) * (expectedOutputs[k] - output[k]);
                         } else {
                             neuronError = neuron.getActivationStrategy().derivative(neuron.getOutput());
-                            //neuronError = neuron.getOutput() * (1 - neuron.getOutput());
 
                             double sum = 0;
                             List<Neuron> downstreamNeurons = layer.getNextLayer().getNeurons();
@@ -75,22 +75,32 @@ public class Backpropagator {
                             neuronError *= sum;
                         }
 
-                        neuron.setError(neuron.getError() + neuronError);
+                        //neuron.setError(neuron.getError() + neuronError);
+                        neuron.setError(neuronError);
 
                         for (Synapse synapse : neuron.getInputs()) {
-                            System.out.println("delta = " + learningRate + " * " + neuronError + " * " + synapse.getSourceNeuron().getOutput());
+                            //System.out.println("delta = " + learningRate + " * " + neuronError + " * " + synapse.getSourceNeuron().getOutput());
                             double delta = learningRate * neuronError * synapse.getSourceNeuron().getOutput();
-                            System.out.println("Adjusting weight " + synapse.getWeight() + " by " + delta);
+                            //System.out.println("Adjusting weight " + synapse.getWeight() + " by " + delta);
                             synapse.setWeight(synapse.getWeight() + delta);
                         }
                     }
                 }
 
                 output = neuralNetwork.getOutput();
-                totalError += error(output, expectedOutput);
-                System.out.println("inputs: " + explode(input) + " output: " + explode(output) + " expected: " + explode(expectedOutput) + " total error: " + totalError);
+                errors[i] = error(output, expectedOutput);
+                //System.out.println("inputs: " + explode(input) + " output: " + explode(output) + " expected: " + explode(expectedOutput) + " error: " + errors[i]);
             }
-        } while(totalError > 0.01);
+
+            for(double error : errors) {
+                totalError += error;
+            }
+
+            totalError = totalError / errors.length;
+
+            System.out.println("Total error for this training set: " + totalError);
+
+        } while(totalError > 0.001);
     }
 
     private String explode(double[] array) {

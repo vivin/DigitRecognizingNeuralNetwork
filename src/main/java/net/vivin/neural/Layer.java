@@ -14,17 +14,22 @@ public class Layer {
     private List<Neuron> neurons;
     private Layer previousLayer;
     private Layer nextLayer;
-    private boolean outputLayer;
+    private Neuron bias;
 
     public Layer() {
         neurons = new ArrayList<Neuron>();
         previousLayer = null;
-        outputLayer = false;
     }
 
     public Layer(Layer previousLayer) {
         this();
         this.previousLayer = previousLayer;
+    }
+
+    public Layer(Layer previousLayer, Neuron bias) {
+        this(previousLayer);
+        this.bias = bias;
+        neurons.add(bias);
     }
 
     public List<Neuron> getNeurons() {
@@ -37,7 +42,7 @@ public class Layer {
 
         if(previousLayer != null) {
             for(Neuron previousLayerNeuron : previousLayer.getNeurons()) {
-                neuron.addInput(new Synapse(previousLayerNeuron, (Math.random() * 2) - 1)); //initialize with a random weight between -1 and 1
+                neuron.addInput(new Synapse(previousLayerNeuron, (Math.random() * 1) - 0.5)); //initialize with a random weight between -1 and 1
             }
         }
     }
@@ -48,15 +53,16 @@ public class Layer {
 
         if(previousLayer != null) {
 
-            if(previousLayer.getNeurons().size() != weights.length) {
+            int biasCount = previousLayer.hasBias() ? 1 : 0;
+
+            if(previousLayer.getNeurons().size() - biasCount != weights.length) {
                 throw new IllegalArgumentException("The number of weights supplied must be equal to the number of neurons in the previous layer");
             }
 
             else {
-                int i = 0;
-                for(Neuron previousLayerNeuron : previousLayer.getNeurons()) {
-                    neuron.addInput(new Synapse(previousLayerNeuron, weights[i]));
-                    i++;
+                List<Neuron> previousLayerNeurons = previousLayer.getNeurons();
+                for(int i = biasCount; i < previousLayerNeurons.size(); i++) {
+                    neuron.addInput(new Synapse(previousLayerNeurons.get(i), weights[i - biasCount]));
                 }
             }
 
@@ -92,11 +98,11 @@ public class Layer {
         this.nextLayer = nextLayer;
     }
 
-    public void setOutputLayer(boolean outputLayer) {
-        this.outputLayer = outputLayer;
+    public boolean isOutputLayer() {
+        return nextLayer == null;
     }
 
-    public boolean isOutputLayer() {
-        return this.outputLayer;
+    public boolean hasBias() {
+        return bias != null;
     }
 }
