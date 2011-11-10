@@ -1,6 +1,9 @@
 package net.vivin.neural;
 
+import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -9,7 +12,7 @@ import java.util.List;
  * Date: 11/5/11
  * Time: 12:42 PM
  */
-public class Layer {
+public class Layer implements Serializable {
 
     private List<Neuron> neurons;
     private Layer previousLayer;
@@ -53,16 +56,14 @@ public class Layer {
 
         if(previousLayer != null) {
 
-            int biasCount = previousLayer.hasBias() ? 1 : 0;
-
-            if(previousLayer.getNeurons().size() - biasCount != weights.length) {
+            if(previousLayer.getNeurons().size() != weights.length) {
                 throw new IllegalArgumentException("The number of weights supplied must be equal to the number of neurons in the previous layer");
             }
 
             else {
                 List<Neuron> previousLayerNeurons = previousLayer.getNeurons();
-                for(int i = biasCount; i < previousLayerNeurons.size(); i++) {
-                    neuron.addInput(new Synapse(previousLayerNeurons.get(i), weights[i - biasCount]));
+                for(int i = 0; i < previousLayerNeurons.size(); i++) {
+                    neuron.addInput(new Synapse(previousLayerNeurons.get(i), weights[i]));
                 }
             }
 
@@ -71,7 +72,10 @@ public class Layer {
 
     public void feedForward() {
 
-        for(Neuron neuron : neurons) {
+        int biasCount = hasBias() ? 1 : 0;
+
+        for(int i = biasCount; i < neurons.size(); i++) {
+            Neuron neuron = neurons.get(i);
             double weightedSum = 0.0;
 
             for(Synapse input : neuron.getInputs()) {

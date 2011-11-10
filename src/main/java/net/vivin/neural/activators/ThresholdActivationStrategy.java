@@ -22,4 +22,8 @@ public class ThresholdActivationStrategy implements ActivationStrategy {
     public double derivative(double weightedSum) {
         return 0;
     }
+
+    public ThresholdActivationStrategy copy() {
+        return new ThresholdActivationStrategy(threshold);
+    }
 }

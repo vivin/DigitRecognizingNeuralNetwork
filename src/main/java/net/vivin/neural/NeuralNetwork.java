@@ -1,5 +1,6 @@
 package net.vivin.neural;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
  * Date: 11/5/11
  * Time: 1:39 PM
  */
-public class NeuralNetwork {
+public class NeuralNetwork implements Serializable {
 
     private List<Layer> layers;
     private Layer input;
@@ -17,6 +18,53 @@ public class NeuralNetwork {
 
     public NeuralNetwork() {
         layers = new ArrayList<Layer>();
+    }
+
+    public NeuralNetwork copy() {
+        NeuralNetwork copy = new NeuralNetwork();
+
+        Layer previousLayer = null;
+        for(Layer layer : layers) {
+
+            Layer layerCopy;
+
+            if(layer.hasBias()) {
+                Neuron bias = layer.getNeurons().get(0);
+                Neuron biasCopy = new Neuron(bias.getActivationStrategy().copy());
+                biasCopy.setOutput(bias.getOutput());
+                layerCopy = new Layer(null, biasCopy);
+            }
+
+            else {
+                layerCopy = new Layer();
+            }
+
+            layerCopy.setPreviousLayer(previousLayer);
+
+            int biasCount = layerCopy.hasBias() ? 1 : 0;
+
+            for(int i = biasCount; i < layer.getNeurons().size(); i++) {
+                Neuron neuron = layer.getNeurons().get(i);
+
+                Neuron neuronCopy = new Neuron(neuron.getActivationStrategy().copy());
+                neuronCopy.setOutput(neuron.getOutput());
+                neuronCopy.setError(neuron.getError());
+
+                if(neuron.getInputs().size() == 0) {
+                    layerCopy.addNeuron(neuronCopy);
+                }
+
+                else {
+                    double[] weights = neuron.getWeights();
+                    layerCopy.addNeuron(neuronCopy, weights);
+                }
+            }
+
+            copy.addLayer(layerCopy);
+            previousLayer = layerCopy;
+        }
+
+        return copy;
     }
 
     public void addLayer(Layer layer) {
@@ -73,5 +121,51 @@ public class NeuralNetwork {
 
     public List<Layer> getLayers() {
         return layers;
+    }
+
+    public void reset() {
+        for(Layer layer : layers) {
+            for(Neuron neuron : layer.getNeurons()) {
+                for(Synapse synapse : neuron.getInputs()) {
+                    synapse.setWeight((Math.random() * 1) - 0.5);
+                }
+            }
+        }
+    }
+
+    public void copyWeightsFrom(NeuralNetwork sourceNeuralNetwork) {
+        if(layers.size() != sourceNeuralNetwork.layers.size()) {
+            throw new IllegalArgumentException("Cannot copy weights. Number of layers do not match (" + sourceNeuralNetwork.layers.size() + " in source versus " + layers.size() + " in destination)");
+        }
+
+        int i = 0;
+        for(Layer sourceLayer : sourceNeuralNetwork.layers) {
+            Layer destinationLayer = layers.get(i);
+
+            if(destinationLayer.getNeurons().size() != sourceLayer.getNeurons().size()) {
+                throw new IllegalArgumentException("Number of neurons do not match in layer " + (i + 1) + "(" + sourceLayer.getNeurons().size() + " in source versus " + destinationLayer.getNeurons().size() + " in destination)");
+            }
+
+            int j = 0;
+            for(Neuron sourceNeuron : sourceLayer.getNeurons()) {
+                Neuron destinationNeuron = destinationLayer.getNeurons().get(j);
+
+                if(destinationNeuron.getInputs().size() != sourceNeuron.getInputs().size()) {
+                    throw new IllegalArgumentException("Number of inputs to neuron " + (j + 1) + " in layer " + (i + 1) + " do not match (" + sourceNeuron.getInputs().size() + " in source versus " + destinationNeuron.getInputs().size() + " in destination)");
+                }
+
+                int k = 0;
+                for(Synapse sourceSynapse : sourceNeuron.getInputs()) {
+                    Synapse destinationSynapse = destinationNeuron.getInputs().get(k);
+
+                    destinationSynapse.setWeight(sourceSynapse.getWeight());
+                    k++;
+                }
+
+                j++;
+            }
+
+            i++;
+        }
     }
 }

@@ -16,4 +16,8 @@ public class HyperbolicTangentActivationStrategy implements ActivationStrategy {
     public double derivative(double weightedSum) {
         return 1 - Math.pow(activate(weightedSum), 2.0);
     }
+
+    public HyperbolicTangentActivationStrategy copy() {
+        return new HyperbolicTangentActivationStrategy();
+    }
 }

@@ -66,8 +66,8 @@ public class NeuralNetExample {
         System.out.println("1 XOR 1: " + xorNeuralNetwork.getOutput()[0] + "\n");
 
         NeuralNetwork untrained = createUntrainedXorNeuralNetwork();
-        Backpropagator backpropagator = new Backpropagator(untrained, 0.1);
-        backpropagator.train(new double[][]{{0, 0}, {0, 1}, {1, 0}, {1, 1}}, new double[][]{{0}, {1}, {1}, {0}});
+        Backpropagator backpropagator = new Backpropagator(untrained, 0.1, 0.9);
+        backpropagator.train(10, new double[][]{{0, 0}, {0, 1}, {1, 0}, {1, 1}}, new double[][]{{0}, {1}, {1}, {0}});
 
         System.out.println("Testing trained XOR neural network");
 
@@ -184,9 +184,11 @@ public class NeuralNetExample {
 
         Neuron hiddenA = new Neuron(new SigmoidActivationStrategy());
         Neuron hiddenB = new Neuron(new SigmoidActivationStrategy());
+        Neuron hiddenC = new Neuron(new SigmoidActivationStrategy());
 
         hiddenLayer.addNeuron(hiddenA);
         hiddenLayer.addNeuron(hiddenB);
+//        hiddenLayer.addNeuron(hiddenC);
 
         Layer outputLayer = new Layer(hiddenLayer);
         Neuron xorNeuron = new Neuron(new SigmoidActivationStrategy());

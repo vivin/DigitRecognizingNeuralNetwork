@@ -1,12 +1,14 @@
 package net.vivin.neural;
 
+import java.io.Serializable;
+
 /**
  * Created by IntelliJ IDEA.
  * User: vivin
  * Date: 11/5/11
  * Time: 12:03 PM
  */
-public class Synapse {
+public class Synapse implements Serializable {
 
     private Neuron sourceNeuron;
     private double weight;

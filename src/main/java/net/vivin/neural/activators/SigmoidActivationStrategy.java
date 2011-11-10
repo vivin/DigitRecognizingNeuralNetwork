@@ -14,4 +14,8 @@ public class SigmoidActivationStrategy implements ActivationStrategy {
     public double derivative(double weightedSum) {
         return weightedSum * (1.0 - weightedSum);
     }
+
+    public SigmoidActivationStrategy copy() {
+        return new SigmoidActivationStrategy();
+    }
 }

@@ -2,6 +2,7 @@ package net.vivin.neural;
 
 import net.vivin.neural.activators.ActivationStrategy;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
  * Date: 11/5/11
  * Time: 11:52 AM
  */
-public class Neuron {
+public class Neuron implements Serializable {
 
     private List<Synapse> inputs;
     private ActivationStrategy activationStrategy;
@@ -30,6 +31,18 @@ public class Neuron {
 
     public List<Synapse> getInputs() {
         return this.inputs;
+    }
+
+    public double[] getWeights() {
+        double[] weights = new double[inputs.size()];
+
+        int i = 0;
+        for(Synapse synapse : inputs) {
+            weights[i] = synapse.getWeight();
+            i++;
+        }
+
+        return weights;
     }
 
     public double getOutput() {
