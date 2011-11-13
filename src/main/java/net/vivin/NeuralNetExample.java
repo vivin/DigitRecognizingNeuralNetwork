@@ -7,6 +7,8 @@ import net.vivin.neural.Neuron;
 import net.vivin.neural.activators.SigmoidActivationStrategy;
 import net.vivin.neural.activators.ThresholdActivationStrategy;
 import net.vivin.neural.activators.HyperbolicTangentActivationStrategy;
+import net.vivin.neural.generator.TrainingDataGenerator;
+import net.vivin.xor.generator.XorTrainingDataGenerator;
 
 /**
  * Created by IntelliJ IDEA.
@@ -66,8 +68,10 @@ public class NeuralNetExample {
         System.out.println("1 XOR 1: " + xorNeuralNetwork.getOutput()[0] + "\n");
 
         NeuralNetwork untrained = createUntrainedXorNeuralNetwork();
+        TrainingDataGenerator xorTrainingDataGenerator = new XorTrainingDataGenerator();
+
         Backpropagator backpropagator = new Backpropagator(untrained, 0.1, 0.9);
-        backpropagator.train(10, new double[][]{{0, 0}, {0, 1}, {1, 0}, {1, 1}}, new double[][]{{0}, {1}, {1}, {0}});
+        backpropagator.train(xorTrainingDataGenerator, 0.001);
 
         System.out.println("Testing trained XOR neural network");
 

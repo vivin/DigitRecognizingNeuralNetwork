@@ -1,5 +1,7 @@
 package net.vivin.neural;
 
+import net.vivin.neural.generator.TrainingDataGenerator;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,119 +26,100 @@ public class Backpropagator {
         this.momentum = momentum;
     }
 
-    public void train(int iterations, double[][] inputs, double[][] expectedOutputs) {
-
-        if(inputs.length != expectedOutputs.length) {
-            throw new IllegalArgumentException("Number of inputs must equal number of outputs");
-        }
-
-        double error = 100;
-        int bestIteration = -1;
-        NeuralNetwork best = neuralNetwork;
-
-        for(int i = 0; i < iterations; i++) {
-
-            System.out.println("\nIteration #" + i);
-
-            double currentError = backpropagate(inputs, expectedOutputs);
-
-            if(currentError < error) {
-                best = neuralNetwork.copy();
-                bestIteration = i;
-                error = currentError;
-            }
-
-            neuralNetwork.reset();
-        }
-
-        neuralNetwork.copyWeightsFrom(best);
-        System.out.println("\nBest error was " + error + " in iteration #" + bestIteration + "\n");
-    }
-
-    private double backpropagate(double[][] inputs, double[][] expectedOutputs) {
-        List<Layer> layers = neuralNetwork.getLayers();
-
-        Map<Synapse, Double> synapseNeuronDeltaMap = new HashMap<Synapse, Double>();
+    public void train(TrainingDataGenerator generator, double errorThreshold) {
 
         double error;
         int epoch = 1;
 
         do {
+            error = backpropagate(generator.getTrainingData().getInputs(), generator.getTrainingData().getOutputs());
+            System.out.println("Error for epoch " + epoch + ": " + error + " and weights: " + explode(neuralNetwork.getWeights()));
+            epoch++;
+        } while(error > errorThreshold);
+    }
 
-            error = 0;
+    public double backpropagate(double[][] inputs, double[][] expectedOutputs) {
 
-            for (int i = 0; i < inputs.length; i++) {
+        double error = 0;
 
-                double[] input = inputs[i];
-                double[] expectedOutput = expectedOutputs[i];
+        for (int i = 0; i < inputs.length; i++) {
 
-                neuralNetwork.setInputs(input);
-                double[] output = neuralNetwork.getOutput();
+            double[] input = inputs[i];
+            double[] expectedOutput = expectedOutputs[i];
 
-                for (int j = layers.size() - 1; j > 0; j--) {
-                    Layer layer = layers.get(j);
+            List<Layer> layers = neuralNetwork.getLayers();
+            Map<Synapse, Double> synapseNeuronDeltaMap = new HashMap<Synapse, Double>();
 
-                    for (int k = 0; k < layer.getNeurons().size(); k++) {
-                        Neuron neuron = layer.getNeurons().get(k);
-                        double neuronError = 0;
+            neuralNetwork.setInputs(input);
+            double[] output = neuralNetwork.getOutput();
 
-                        if (layer.isOutputLayer()) {
-                            neuronError = neuron.getActivationStrategy().derivative(output[k]) * (expectedOutput[k] - output[k]);
-                        } else {
-                            neuronError = neuron.getActivationStrategy().derivative(neuron.getOutput());
+            //First step of the backpropagation algorithm. Backpropagate errors from the output layer all the way up
+            //to the first hidden layer
+            for (int j = layers.size() - 1; j > 0; j--) {
+                Layer layer = layers.get(j);
 
-                            double sum = 0;
-                            List<Neuron> downstreamNeurons = layer.getNextLayer().getNeurons();
-                            for (Neuron downstreamNeuron : downstreamNeurons) {
+                for (int k = 0; k < layer.getNeurons().size(); k++) {
+                    Neuron neuron = layer.getNeurons().get(k);
+                    double neuronError = 0;
 
-                                int l = 0;
-                                boolean found = false;
-                                while (l < downstreamNeuron.getInputs().size() && !found) {
-                                    Synapse synapse = downstreamNeuron.getInputs().get(l);
+                    if (layer.isOutputLayer()) {
+                        //the order of output and expected determines the sign of the delta. if we have output - expected, we subtract the delta
+                        //if we have expected - output we add the delta.
+                        neuronError = neuron.getDerivative() * (neuron.getOutput() - expectedOutput[k]);
+                    } else {
+                        neuronError = neuron.getDerivative();
 
-                                    if (synapse.getSourceNeuron() == neuron) {
-                                        sum += (synapse.getWeight() * downstreamNeuron.getError());
-                                        found = true;
-                                    }
+                        double sum = 0;
+                        List<Neuron> downstreamNeurons = layer.getNextLayer().getNeurons();
+                        for (Neuron downstreamNeuron : downstreamNeurons) {
 
-                                    l++;
+                            int l = 0;
+                            boolean found = false;
+                            while (l < downstreamNeuron.getInputs().size() && !found) {
+                                Synapse synapse = downstreamNeuron.getInputs().get(l);
+
+                                if (synapse.getSourceNeuron() == neuron) {
+                                    sum += (synapse.getWeight() * downstreamNeuron.getError());
+                                    found = true;
                                 }
-                            }
 
-                            neuronError *= sum;
+                                l++;
+                            }
                         }
 
-                        neuron.setError(neuronError);
-
-                        for (Synapse synapse : neuron.getInputs()) {
-                            //System.out.println("delta = " + learningRate + " * " + neuronError + " * " + synapse.getSourceNeuron().getOutput());
-                            double delta = learningRate * neuronError * synapse.getSourceNeuron().getOutput();
-
-                            if(synapseNeuronDeltaMap.get(synapse) != null) {
-                                double previous_delta = synapseNeuronDeltaMap.get(synapse);
-                                delta += momentum * previous_delta;
-                            }
-
-                            synapseNeuronDeltaMap.put(synapse, delta); //read up more on this... figure out how to fix the algorithm to account for momentum
-
-                            //System.out.println("Adjusting weight " + synapse.getWeight() + " by " + delta);
-                            synapse.setWeight(synapse.getWeight() + delta);
-                        }
+                        neuronError *= sum;
                     }
+
+                    neuron.setError(neuronError);
                 }
-
-                output = neuralNetwork.getOutput();
-
-                error += error(output, expectedOutput);
-                //System.out.println("inputs: " + explode(input) + " output: " + explode(output) + " expected: " + explode(expectedOutput) + " error: " + errors[i]);
             }
 
-            error /= 2;
+            //Second step of the backpropagation algorithm. Using the errors calculated above, update the weights of the
+            //network
+            for(int j = layers.size() - 1; j > 0; j--) {
+                Layer layer = layers.get(j);
 
-            System.out.println("Error for epoch " + epoch + ": " + error);
-            epoch++;
+                for(Neuron neuron : layer.getNeurons()) {
 
-        } while(error > 0.001);
+                    for(Synapse synapse : neuron.getInputs()) {
+                        double delta = learningRate * neuron.getError() * synapse.getSourceNeuron().getOutput();
+
+                        if(synapseNeuronDeltaMap.get(synapse) != null) {
+                            double previousDelta = synapseNeuronDeltaMap.get(synapse);
+                            delta += momentum * previousDelta;
+                        }
+
+                        synapseNeuronDeltaMap.put(synapse, delta);
+                        synapse.setWeight(synapse.getWeight() - delta);
+                    }
+                }
+            }
+
+            output = neuralNetwork.getOutput();
+            error += error(output, expectedOutput);
+        }
+
+        error /= inputs.length;
         return error;
     }
 
@@ -166,6 +149,6 @@ public class Backpropagator {
             sum += Math.pow(expected[i] - actual[i], 2);
         }
 
-        return sum;
+        return sum / 2;
     }
 }

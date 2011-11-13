@@ -17,6 +17,8 @@ public class Neuron implements Serializable {
     private List<Synapse> inputs;
     private ActivationStrategy activationStrategy;
     private double output;
+    private double derivative;
+    private double weightedSum;
     private double error;
 
     public Neuron(ActivationStrategy activationStrategy) {
@@ -45,12 +47,29 @@ public class Neuron implements Serializable {
         return weights;
     }
 
+    private void calculateWeightedSum() {
+        weightedSum = 0;
+        for(Synapse synapse : inputs) {
+            weightedSum += synapse.getWeight() * synapse.getSourceNeuron().getOutput();
+        }
+    }
+
+    public void activate() {
+        calculateWeightedSum();
+        output = activationStrategy.activate(weightedSum);
+        derivative = activationStrategy.derivative(output);
+    }
+
     public double getOutput() {
         return this.output;
     }
 
     public void setOutput(double output) {
         this.output = output;
+    }
+
+    public double getDerivative() {
+        return this.derivative;
     }
 
     public ActivationStrategy getActivationStrategy() {

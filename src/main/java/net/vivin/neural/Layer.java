@@ -75,14 +75,7 @@ public class Layer implements Serializable {
         int biasCount = hasBias() ? 1 : 0;
 
         for(int i = biasCount; i < neurons.size(); i++) {
-            Neuron neuron = neurons.get(i);
-            double weightedSum = 0.0;
-
-            for(Synapse input : neuron.getInputs()) {
-                weightedSum += (input.getWeight() * input.getSourceNeuron().getOutput());
-            }
-
-            neuron.setOutput(neuron.getActivationStrategy().activate(weightedSum));
+            neurons.get(i).activate();
         }
     }
 

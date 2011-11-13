@@ -1,6 +1,7 @@
 package net.vivin.neural;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -131,6 +132,31 @@ public class NeuralNetwork implements Serializable {
                 }
             }
         }
+    }
+
+    public double[] getWeights() {
+
+        List<Double> weights = new ArrayList<Double>();
+
+        for(Layer layer : layers) {
+
+            for(Neuron neuron : layer.getNeurons()) {
+
+                for(Synapse synapse: neuron.getInputs()) {
+                    weights.add(synapse.getWeight());
+                }
+            }
+        }
+
+        double[] allWeights = new double[weights.size()];
+
+        int i = 0;
+        for(Double weight : weights) {
+            allWeights[i] = weight;
+            i++;
+        }
+
+        return allWeights;
     }
 
     public void copyWeightsFrom(NeuralNetwork sourceNeuralNetwork) {
