@@ -5,10 +5,7 @@ import net.vivin.neural.generator.TrainingData;
 import net.vivin.neural.generator.TrainingDataGenerator;
 import net.vivin.service.DigitImageLoadingService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,6 +19,8 @@ public class DigitTrainingDataGenerator implements TrainingDataGenerator {
     int[] digits = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     public DigitTrainingDataGenerator(List<DigitImage> digitImages) {
+        labelToDigitImageListMap = new HashMap<Integer, List<DigitImage>>();
+
         for (DigitImage digitImage: digitImages) {
 
             if (labelToDigitImageListMap.get(digitImage.getLabel()) == null) {

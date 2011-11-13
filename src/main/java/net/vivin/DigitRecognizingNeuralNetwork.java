@@ -1,12 +1,14 @@
 package net.vivin;
 
 import net.vivin.digit.DigitImage;
+import net.vivin.digit.generator.DigitTrainingDataGenerator;
 import net.vivin.neural.Backpropagator;
 import net.vivin.neural.Layer;
 import net.vivin.neural.NeuralNetwork;
 import net.vivin.neural.Neuron;
 import net.vivin.neural.activators.LinearActivationStrategy;
 import net.vivin.neural.activators.SigmoidActivationStrategy;
+import net.vivin.neural.generator.TrainingData;
 import net.vivin.service.DigitImageLoadingService;
 
 import java.io.IOException;
@@ -66,74 +68,38 @@ public class DigitRecognizingNeuralNetwork {
         neuralNetwork.addLayer(hiddenLayer);
         neuralNetwork.addLayer(outputLayer);
 
-        //Build a map using the image label as a key. The value is a list of images. This will help us pick random images
-        Map<Integer, List<DigitImage>> labelToImageListMap = new HashMap<Integer, List<DigitImage>>();
-
-        for(DigitImage image : images) {
-
-            if(labelToImageListMap.get(image.getLabel()) == null) {
-                labelToImageListMap.put(image.getLabel(), new ArrayList<DigitImage>());
-            }
-
-            labelToImageListMap.get(image.getLabel()).add(image);
-        }
-
-        int[] digits = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-
-        double error = 0;
-        double[][] inputs = new double[10][DigitImageLoadingService.ROWS * DigitImageLoadingService.COLUMNS];
-        double[][] outputs = new double[10][10];
-
+        DigitTrainingDataGenerator generator = new DigitTrainingDataGenerator(service.loadDigitImages());
         Backpropagator backpropagator = new Backpropagator(neuralNetwork, 0.1, 0.9);
+        backpropagator.train(generator, 0.0001);
 
-             //initialize inputs and outputs
-           /* digits = shuffle(digits);
-            for(int i = 0; i < 10; i++) {
-                DigitImage randomImage = getRandomImage(digits[i], labelToImageListMap);
-                inputs[i] = randomImage.getData();
-                outputs[i] = getOutputFor(digits[i]);
+        TrainingData trainingData = generator.getTrainingData();
+
+        for(int i = 0; i < trainingData.getInputs().length; i++) {
+            double[] input = trainingData.getInputs()[i];
+            double[] output = trainingData.getOutputs()[i];
+
+            int digit = 0;
+            boolean found = false;
+            while(digit < 10 && !found) {
+                found = (output[digit] == 1);
+                digit++;
             }
 
-        for(int i = 0; i < digits.length; i++) {
-            System.out.print(digits[i] + ", ");
-        }*/
+            neuralNetwork.setInputs(input);
+            double[] receivedOutput = neuralNetwork.getOutput();
 
-        System.out.println();
-
-        do {
-
-            //initialize inputs and outputs
-            digits = shuffle(digits);
-            for(int i = 0; i < 10; i++) {
-                inputs[i] = getRandomImage(digits[i], labelToImageListMap).getData();
-                outputs[i] = getOutputFor(digits[i]);
-            }
-
-            error = backpropagator.backpropagate(inputs, outputs);
-            System.out.println(error);
-
-            int digit = new Random().nextInt(10);
-
-            DigitImage randomImage = getRandomImage(new Random().nextInt(10), labelToImageListMap);
-            neuralNetwork.setInputs(randomImage.getData());
-            double[] output = neuralNetwork.getOutput();
-
-            int recognized = 0;
-            double best = output[0];
-            for(int i = 0; i < output.length; i++) {
-                if(output[i] > best) {
-                    best = output[i];
-                    recognized = i;
+            double max = receivedOutput[0];
+            double recognizedDigit = 0;
+            for(int j = 0; j < receivedOutput.length; j++) {
+                if(receivedOutput[j] > max) {
+                    max = receivedOutput[j];
+                    recognizedDigit = j;
                 }
             }
 
-            System.out.println("Recognized image of " + digit + " as a " + recognized + " with output equal to " + best + ": expected " + explode(getOutputFor(digit)) + " got " + explode(output) + "\n");
+            System.out.println("Recognized " + (digit - 1) + " as " + recognizedDigit + ". Corresponding output value was " + max);
 
-
-        } while(error > 0.00001);
-
-
-        System.out.println(images.size());
+        }
     }
 
     private static String explode(double[] array) {

@@ -1,5 +1,6 @@
 package net.vivin.neural;
 
+import net.vivin.neural.generator.TrainingData;
 import net.vivin.neural.generator.TrainingDataGenerator;
 
 import java.util.HashMap;
@@ -32,8 +33,9 @@ public class Backpropagator {
         int epoch = 1;
 
         do {
-            error = backpropagate(generator.getTrainingData().getInputs(), generator.getTrainingData().getOutputs());
-            System.out.println("Error for epoch " + epoch + ": " + error + " and weights: " + explode(neuralNetwork.getWeights()));
+            TrainingData trainingData = generator.getTrainingData();
+            error = backpropagate(trainingData.getInputs(), trainingData.getOutputs());
+            System.out.println("Error for epoch " + epoch + ": " + error);
             epoch++;
         } while(error > errorThreshold);
     }
@@ -65,7 +67,7 @@ public class Backpropagator {
                     if (layer.isOutputLayer()) {
                         //the order of output and expected determines the sign of the delta. if we have output - expected, we subtract the delta
                         //if we have expected - output we add the delta.
-                        neuronError = neuron.getDerivative() * (neuron.getOutput() - expectedOutput[k]);
+                        neuronError = neuron.getDerivative() * (output[k] - expectedOutput[k]);
                     } else {
                         neuronError = neuron.getDerivative();
 
@@ -119,7 +121,6 @@ public class Backpropagator {
             error += error(output, expectedOutput);
         }
 
-        error /= inputs.length;
         return error;
     }
 
