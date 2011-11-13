@@ -20,11 +20,15 @@ public class Backpropagator {
     private NeuralNetwork neuralNetwork;
     private double learningRate;
     private double momentum;
+    private double up;
+    private double down;
 
     public Backpropagator(NeuralNetwork neuralNetwork, double learningRate, double momentum) {
         this.neuralNetwork = neuralNetwork;
         this.learningRate = learningRate;
         this.momentum = momentum;
+        this.up = 1.5;
+        this.down = 0.5;
     }
 
     public void train(TrainingDataGenerator generator, double errorThreshold) {
@@ -44,13 +48,16 @@ public class Backpropagator {
 
         double error = 0;
 
+        Map<Synapse, Double> synapseNeuronDeltaMap = new HashMap<Synapse, Double>();
+        Map<Synapse, Double> synapseLearningRateMap = new HashMap<Synapse, Double>();
+        Map<Synapse, Double> synapseErrorGradientMap = new HashMap<Synapse, Double>();
+
         for (int i = 0; i < inputs.length; i++) {
 
             double[] input = inputs[i];
             double[] expectedOutput = expectedOutputs[i];
 
             List<Layer> layers = neuralNetwork.getLayers();
-            Map<Synapse, Double> synapseNeuronDeltaMap = new HashMap<Synapse, Double>();
 
             neuralNetwork.setInputs(input);
             double[] output = neuralNetwork.getOutput();
@@ -104,7 +111,25 @@ public class Backpropagator {
                 for(Neuron neuron : layer.getNeurons()) {
 
                     for(Synapse synapse : neuron.getInputs()) {
-                        double delta = learningRate * neuron.getError() * synapse.getSourceNeuron().getOutput();
+
+                        if(synapseLearningRateMap.get(synapse) == null) {
+                            synapseLearningRateMap.put(synapse, learningRate);
+                            synapseErrorGradientMap.put(synapse, 0.0);
+                        }
+
+                        double delta = synapseLearningRateMap.get(synapse) * neuron.getError() * synapse.getSourceNeuron().getOutput();
+
+                        double newLearningRate = synapseLearningRateMap.get(synapse);
+                        if(neuron.getError() * synapse.getSourceNeuron().getOutput() * synapseErrorGradientMap.get(synapse) >= 0) {
+                            newLearningRate *= up;
+                        }
+
+                        else {
+                            newLearningRate *= down;
+                        }
+
+                        synapseLearningRateMap.put(synapse, newLearningRate);
+                        synapseErrorGradientMap.put(synapse, neuron.getError() * synapse.getSourceNeuron().getOutput());
 
                         if(synapseNeuronDeltaMap.get(synapse) != null) {
                             double previousDelta = synapseNeuronDeltaMap.get(synapse);
