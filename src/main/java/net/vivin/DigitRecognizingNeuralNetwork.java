@@ -11,7 +11,9 @@ import net.vivin.neural.activators.SigmoidActivationStrategy;
 import net.vivin.neural.generator.TrainingData;
 import net.vivin.service.DigitImageLoadingService;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,11 +27,11 @@ import java.util.regex.Pattern;
 public class DigitRecognizingNeuralNetwork {
 
     public static void main(String[] args) throws IOException {
-        DigitImageLoadingService service = new DigitImageLoadingService("/train/train-labels-idx1-ubyte.dat", "/train/train-images-idx3-ubyte.dat");
 
-        List<DigitImage> images = service.loadDigitImages();
+        DigitImageLoadingService trainingService = new DigitImageLoadingService("/train/train-labels-idx1-ubyte.dat", "/train/train-images-idx3-ubyte.dat");
+        DigitImageLoadingService testService = new DigitImageLoadingService("/test/t10k-images-idx3-ubyte.dat", "/test/t10k-labels-idx1-ubyte.dat");
 
-        NeuralNetwork neuralNetwork = new NeuralNetwork();
+        NeuralNetwork neuralNetwork = new NeuralNetwork("Digit Recognizing Neural Network");
 
         Neuron inputBias = new Neuron(new LinearActivationStrategy());
         inputBias.setOutput(1);
@@ -68,15 +70,16 @@ public class DigitRecognizingNeuralNetwork {
         neuralNetwork.addLayer(hiddenLayer);
         neuralNetwork.addLayer(outputLayer);
 
-        DigitTrainingDataGenerator generator = new DigitTrainingDataGenerator(service.loadDigitImages());
+        DigitTrainingDataGenerator trainingDataGenerator = new DigitTrainingDataGenerator(trainingService.loadDigitImages());
         Backpropagator backpropagator = new Backpropagator(neuralNetwork, 0.1, 0.9);
-        backpropagator.train(generator, 0.0001);
+        backpropagator.train(trainingDataGenerator, 0.0001);
 
-        TrainingData trainingData = generator.getTrainingData();
+        DigitTrainingDataGenerator testDataGenerator = new DigitTrainingDataGenerator(testService.loadDigitImages());
+        TrainingData testData = testDataGenerator.getTrainingData();
 
-        for(int i = 0; i < trainingData.getInputs().length; i++) {
-            double[] input = trainingData.getInputs()[i];
-            double[] output = trainingData.getOutputs()[i];
+        for(int i = 0; i < testData.getInputs().length; i++) {
+            double[] input = testData.getInputs()[i];
+            double[] output = testData.getOutputs()[i];
 
             int digit = 0;
             boolean found = false;
@@ -98,50 +101,8 @@ public class DigitRecognizingNeuralNetwork {
             }
 
             System.out.println("Recognized " + (digit - 1) + " as " + recognizedDigit + ". Corresponding output value was " + max);
-
-        }
-    }
-
-    private static String explode(double[] array) {
-        String string = "[";
-
-        for (double number : array) {
-            string += number + ", ";
         }
 
-        Pattern pattern = Pattern.compile(", $", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(string);
-        string = matcher.replaceAll("");
-
-        return string + "]";
-    }
-
-    private static DigitImage getRandomImage(int label, Map<Integer, List<DigitImage>> map) {
-
-        Random random = new Random();
-        List<DigitImage> images = map.get(label);
-
-        return images.get(random.nextInt(images.size()));
-    }
-
-    private static double[] getOutputFor(int label) {
-        double[] output = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        output[label] = 1;
-        return output;
-    }
-
-    private static int[] shuffle(int[] array) {
-
-        Random random = new Random();
-        for(int i = array.length - 1; i > 0; i--) {
-
-            int index = random.nextInt(i + 1);
-            int temp = array[i];
-
-            array[i] = array[index];
-            array[index] = temp;
-        }
-
-        return array;
+        neuralNetwork.persist();
     }
 }

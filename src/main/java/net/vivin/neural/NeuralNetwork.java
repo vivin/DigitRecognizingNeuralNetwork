@@ -1,8 +1,12 @@
 package net.vivin.neural;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,16 +17,18 @@ import java.util.List;
  */
 public class NeuralNetwork implements Serializable {
 
+    private String name;
     private List<Layer> layers;
     private Layer input;
     private Layer output;
 
-    public NeuralNetwork() {
+    public NeuralNetwork(String name) {
+        this.name = name;
         layers = new ArrayList<Layer>();
     }
 
     public NeuralNetwork copy() {
-        NeuralNetwork copy = new NeuralNetwork();
+        NeuralNetwork copy = new NeuralNetwork(this.name);
 
         Layer previousLayer = null;
         for(Layer layer : layers) {
@@ -100,6 +106,10 @@ public class NeuralNetwork implements Serializable {
                 }
             }
         }
+    }
+
+    public String getName() {
+        return name;
     }
 
     public double[] getOutput() {
@@ -192,6 +202,37 @@ public class NeuralNetwork implements Serializable {
             }
 
             i++;
+        }
+    }
+
+    public void persist() {
+        String fileName = name.replaceAll(" ", "") + "-" + new Date().getTime() +  ".net";
+        System.out.println("Writing trained neural network to file " + fileName);
+
+        ObjectOutputStream objectOutputStream = null;
+
+        try {
+            objectOutputStream = new ObjectOutputStream(new FileOutputStream(fileName));
+            objectOutputStream.writeObject(this);
+        }
+
+        catch(IOException e) {
+            System.out.println("Could not write to file: " + fileName);
+            e.printStackTrace();
+        }
+
+        finally {
+            try {
+                if(objectOutputStream != null) {
+                    objectOutputStream.flush();
+                    objectOutputStream.close();
+                }
+            }
+
+            catch(IOException e) {
+                System.out.println("Could not write to file: " + fileName);
+                e.printStackTrace();
+            }
         }
     }
 }

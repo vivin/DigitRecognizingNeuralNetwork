@@ -86,10 +86,12 @@ public class NeuralNetExample {
 
         untrained.setInputs(new double[]{1, 1});
         System.out.println("1 XOR 1: " + (untrained.getOutput()[0]) + "\n");
+
+        untrained.persist();
     }
 
     private static NeuralNetwork createAndNeuralNetwork() {
-        NeuralNetwork andNeuralNetwork = new NeuralNetwork();
+        NeuralNetwork andNeuralNetwork = new NeuralNetwork("AND Network");
 
         Layer inputLayer = new Layer(null);
 
@@ -110,7 +112,7 @@ public class NeuralNetExample {
     }
 
     private static NeuralNetwork createOrNeuralNetwork() {
-        NeuralNetwork orNeuralNetwork = new NeuralNetwork();
+        NeuralNetwork orNeuralNetwork = new NeuralNetwork("OR Network");
 
         Layer inputLayer = new Layer(null);
 
@@ -134,7 +136,7 @@ public class NeuralNetExample {
     }
 
     private static NeuralNetwork createXorNeuralNetwork() {
-        NeuralNetwork xorNeuralNetwork = new NeuralNetwork();
+        NeuralNetwork xorNeuralNetwork = new NeuralNetwork("XOR Network");
 
         Layer inputLayer = new Layer(null);
 
@@ -167,7 +169,7 @@ public class NeuralNetExample {
     }
 
     private static NeuralNetwork createUntrainedXorNeuralNetwork() {
-        NeuralNetwork xorNeuralNetwork = new NeuralNetwork();
+        NeuralNetwork xorNeuralNetwork = new NeuralNetwork("Trained XOR Network");
 
         Neuron inputBias = new Neuron(new SigmoidActivationStrategy());
         inputBias.setOutput(1);
@@ -188,11 +190,9 @@ public class NeuralNetExample {
 
         Neuron hiddenA = new Neuron(new SigmoidActivationStrategy());
         Neuron hiddenB = new Neuron(new SigmoidActivationStrategy());
-        Neuron hiddenC = new Neuron(new SigmoidActivationStrategy());
 
         hiddenLayer.addNeuron(hiddenA);
         hiddenLayer.addNeuron(hiddenB);
-//        hiddenLayer.addNeuron(hiddenC);
 
         Layer outputLayer = new Layer(hiddenLayer);
         Neuron xorNeuron = new Neuron(new SigmoidActivationStrategy());

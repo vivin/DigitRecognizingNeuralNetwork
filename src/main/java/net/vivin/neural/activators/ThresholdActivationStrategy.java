@@ -1,5 +1,7 @@
 package net.vivin.neural.activators;
 
+import java.io.Serializable;
+
 /**
  * Created by IntelliJ IDEA.
  * User: vivin
@@ -7,7 +9,7 @@ package net.vivin.neural.activators;
  * Time: 3:06 PM
  */
 
-public class ThresholdActivationStrategy implements ActivationStrategy {
+public class ThresholdActivationStrategy implements ActivationStrategy, Serializable {
 
     private double threshold;
 
