@@ -29,7 +29,7 @@ public class DigitRecognizingNeuralNetwork {
     public static void main(String[] args) throws IOException {
 
         DigitImageLoadingService trainingService = new DigitImageLoadingService("/train/train-labels-idx1-ubyte.dat", "/train/train-images-idx3-ubyte.dat");
-        DigitImageLoadingService testService = new DigitImageLoadingService("/test/t10k-images-idx3-ubyte.dat", "/test/t10k-labels-idx1-ubyte.dat");
+        DigitImageLoadingService testService = new DigitImageLoadingService("/test/t10k-labels-idx1-ubyte.dat", "/test/t10k-images-idx3-ubyte.dat");
 
         NeuralNetwork neuralNetwork = new NeuralNetwork("Digit Recognizing Neural Network");
 
@@ -72,7 +72,8 @@ public class DigitRecognizingNeuralNetwork {
 
         DigitTrainingDataGenerator trainingDataGenerator = new DigitTrainingDataGenerator(trainingService.loadDigitImages());
         Backpropagator backpropagator = new Backpropagator(neuralNetwork, 0.1, 0.9);
-        backpropagator.train(trainingDataGenerator, 0.0001);
+        backpropagator.train(trainingDataGenerator, 0.005);
+        neuralNetwork.persist();
 
         DigitTrainingDataGenerator testDataGenerator = new DigitTrainingDataGenerator(testService.loadDigitImages());
         TrainingData testData = testDataGenerator.getTrainingData();
@@ -102,7 +103,5 @@ public class DigitRecognizingNeuralNetwork {
 
             System.out.println("Recognized " + (digit - 1) + " as " + recognizedDigit + ". Corresponding output value was " + max);
         }
-
-        neuralNetwork.persist();
     }
 }

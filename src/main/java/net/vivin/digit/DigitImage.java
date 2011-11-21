@@ -87,7 +87,7 @@ public class DigitImage {
         } */
 
         for(i = 0; i < data.length; i++) {
-            data[i] = data[i] < threshold ? 0 : 1;
+            data[i] = data[i] <= threshold ? 0 : 1;
         }
 
 //        System.out.println();

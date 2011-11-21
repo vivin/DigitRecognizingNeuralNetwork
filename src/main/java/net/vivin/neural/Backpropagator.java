@@ -35,9 +35,9 @@ public class Backpropagator {
 
         double error;
         double sum = 0.0;
-        double average = 100;
+        double average = 25;
         int epoch = 1;
-        int samples = 100;
+        int samples = 25;
         double[] errors = new double[samples];
 
         do {
