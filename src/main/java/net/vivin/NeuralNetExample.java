@@ -70,7 +70,7 @@ public class NeuralNetExample {
         NeuralNetwork untrained = createUntrainedXorNeuralNetwork();
         TrainingDataGenerator xorTrainingDataGenerator = new XorTrainingDataGenerator();
 
-        Backpropagator backpropagator = new Backpropagator(untrained, 0.1, 0.9);
+        Backpropagator backpropagator = new Backpropagator(untrained, 0.1, 0.9, 0);
         backpropagator.train(xorTrainingDataGenerator, 0.0001);
 
         System.out.println("Testing trained XOR neural network");

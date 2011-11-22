@@ -89,8 +89,16 @@ public class DigitImage {
         for(i = 0; i < data.length; i++) {
             data[i] = data[i] <= threshold ? 0 : 1;
         }
+/*
+        if(label == 7 || label == 9) {
+            for(i = 0; i < data.length; i++) {
+                if(i % 28 == 0) {
+                    System.out.println("");
+                }
 
-//        System.out.println();
+                System.out.print(data[i] == 1 ? "#" : " ");
+            }
+        }*/
     }
 
     public int getLabel() {

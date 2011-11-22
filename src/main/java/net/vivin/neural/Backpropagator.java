@@ -20,15 +20,14 @@ public class Backpropagator {
     private NeuralNetwork neuralNetwork;
     private double learningRate;
     private double momentum;
-    private double up;
-    private double down;
+    private double characteristicTime;
+    private double currentEpoch;
 
-    public Backpropagator(NeuralNetwork neuralNetwork, double learningRate, double momentum) {
+    public Backpropagator(NeuralNetwork neuralNetwork, double learningRate, double momentum, double characteristicTime) {
         this.neuralNetwork = neuralNetwork;
         this.learningRate = learningRate;
         this.momentum = momentum;
-        this.up = 1.2;
-        this.down = 0.8;
+        this.characteristicTime = characteristicTime;
     }
 
     public void train(TrainingDataGenerator generator, double errorThreshold) {
@@ -52,8 +51,9 @@ public class Backpropagator {
                 average = sum / samples;
             }
 
-            System.out.println("Error for epoch " + epoch + ": " + error + ". Average: " + average);
+            System.out.println("Error for epoch " + epoch + ": " + error + ". Average: " + average + (characteristicTime > 0 ? " Learning rate: " + learningRate / (1 + (currentEpoch / characteristicTime)): ""));
             epoch++;
+            currentEpoch = epoch;
         } while(average > errorThreshold);
     }
 
@@ -123,7 +123,8 @@ public class Backpropagator {
 
                     for(Synapse synapse : neuron.getInputs()) {
 
-                        double delta = learningRate * neuron.getError() * synapse.getSourceNeuron().getOutput();
+                        double newLearningRate = characteristicTime > 0 ? learningRate / (1 + (currentEpoch / characteristicTime)) : learningRate;
+                        double delta = newLearningRate * neuron.getError() * synapse.getSourceNeuron().getOutput();
 
                         if(synapseNeuronDeltaMap.get(synapse) != null) {
                             double previousDelta = synapseNeuronDeltaMap.get(synapse);

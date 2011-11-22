@@ -71,7 +71,7 @@ public class DigitRecognizingNeuralNetwork {
         neuralNetwork.addLayer(outputLayer);
 
         DigitTrainingDataGenerator trainingDataGenerator = new DigitTrainingDataGenerator(trainingService.loadDigitImages());
-        Backpropagator backpropagator = new Backpropagator(neuralNetwork, 0.1, 0.9);
+        Backpropagator backpropagator = new Backpropagator(neuralNetwork, 0.1, 0.9, 0);
         backpropagator.train(trainingDataGenerator, 0.005);
         neuralNetwork.persist();
 
