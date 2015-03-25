@@ -14,7 +14,7 @@ public class LinearActivationStrategy implements ActivationStrategy, Serializabl
     }
 
     public double derivative(double weightedSum) {
-        return 0;
+        return 1;
     }
 
     public ActivationStrategy copy() {
