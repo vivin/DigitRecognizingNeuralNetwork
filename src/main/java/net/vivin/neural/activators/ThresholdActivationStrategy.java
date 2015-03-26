@@ -7,6 +7,10 @@ import java.io.Serializable;
  * User: vivin
  * Date: 11/5/11
  * Time: 3:06 PM
+ *
+ * NOTE: This class should NEVER be used in the backpropagation algorithm! This function is not differentiable at the
+ * threshold. I used this class to construct AND and OR networks when I was just starting to learn about neural nets.
+ * These networks don't actually end up getting trained. 
  */
 
 public class ThresholdActivationStrategy implements ActivationStrategy, Serializable {
