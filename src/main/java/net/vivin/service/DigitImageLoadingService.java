@@ -97,7 +97,7 @@ public class DigitImageLoadingService {
         int numRows = ByteBuffer.wrap(Arrays.copyOfRange(imageBytes, NUMBER_OF_ROWS_OFFSET, NUMBER_OF_ROWS_OFFSET + ROWS_SIZE)).getInt();
         int numCols = ByteBuffer.wrap(Arrays.copyOfRange(imageBytes, NUMBER_OF_COLUMNS_OFFSET, NUMBER_OF_COLUMNS_OFFSET + COLUMNS_SIZE)).getInt();
 
-        if(numRows != ROWS && numRows != COLUMNS) {
+        if(numRows != ROWS && numCols != COLUMNS) {
             throw new IOException("Bad image. Rows and columns do not equal " + ROWS + "x" + COLUMNS);
         }
 
